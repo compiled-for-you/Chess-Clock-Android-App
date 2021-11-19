@@ -1,4 +1,4 @@
-package com.example.chessclock
+package com.example.chessclock.fragment
 
 import android.content.Context
 import android.media.MediaPlayer
@@ -10,9 +10,14 @@ import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
+import com.example.chessclock.R
+import com.example.chessclock.activities.MainActivity
+import com.example.chessclock.adapters.SingleClockAdapter
+import com.example.chessclock.util.ClockData
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
-class HomeFrag : Fragment() {
+class HomeFrag : Fragment(){
 
     lateinit var card_a : View
     lateinit var card_b : View
@@ -25,11 +30,14 @@ class HomeFrag : Fragment() {
     lateinit var clock_b : CountDownTimer
     var a_running  = false
     var b_running = false
-    var time_left_a = 30000L
-    var time_left_b = 30000L
+    var time_left_a = 10000L
+    var time_left_b = 10000L
     lateinit var soundClick : MediaPlayer
     lateinit var soundLost: MediaPlayer
 
+
+    var gameType = arguments?.get("gameType")
+    var gameTime = arguments?.get("gameTime")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -46,7 +54,9 @@ class HomeFrag : Fragment() {
         card_a.setBackgroundResource(R.drawable.card_a_bkd_offturn)
         card_b.setBackgroundResource(R.drawable.card_b_bkd_offturn)
 
+        tv_a.text = (activity as MainActivity).dat?.gameTime.toString()
         card_a.setOnClickListener {
+
             if (b_running){
 
             }
@@ -56,14 +66,20 @@ class HomeFrag : Fragment() {
                 clock_a.cancel()
                 //change A's UI
                 card_a.setBackgroundResource(R.drawable.card_a_bkd_offturn)
-                soundClick = MediaPlayer.create(activity as Context, R.raw.on_tap)
+                val soundClick = MediaPlayer.create(activity as Context, R.raw.on_tap)
                 soundClick.start()
+                soundClick.setOnCompletionListener {
+                    soundClick.release()
+                }
                 clock_b.start()
             }
             else {
                 setClockB(time_left_b)
-                soundClick = MediaPlayer.create(activity as Context, R.raw.on_tap)
+                val soundClick = MediaPlayer.create(activity as Context, R.raw.on_tap)
                 soundClick.start()
+                soundClick.setOnCompletionListener {
+                    soundClick.release()
+                }
                 clock_b.start()
             }
         }
@@ -73,37 +89,45 @@ class HomeFrag : Fragment() {
 
             }
             else if (b_running){
+
                 setClockA(time_left_a)
                 b_running = false
                 clock_b.cancel()
                 card_b.setBackgroundResource(R.drawable.card_b_bkd_offturn)
                 soundClick = MediaPlayer.create(activity as Context, R.raw.on_tap)
                 soundClick.start()
+                soundClick.setOnCompletionListener {
+                    soundClick.release()
+                }
                 clock_a.start()
             }
             else {
                 setClockA(time_left_a)
-                soundClick = MediaPlayer.create(activity as Context, R.raw.on_tap)
+                soundClick = MediaPlayer.create(activity as Context, R.raw.eatmypussy)
                 soundClick.start()
+                soundClick.setOnCompletionListener {
+                    soundClick.release()
+                }
                 clock_a.start()
             }
         }
 
         btn_restart.setOnClickListener {
-            if(a_running) clock_a.cancel()
-            if(b_running) clock_b.cancel()
-            tv_a.text="khelo"
-            tv_b.text="khelo"
+            Toast.makeText(activity as Context, "nothing yet done", Toast.LENGTH_SHORT).show()
         }
 
         btn_settings.setOnClickListener {
             //TODO : make this fragment transaction work well on backstack
-            //Toast.makeText(activity as Context, "Ruk jao banayenge abhi", Toast.LENGTH_SHORT).show()
-            activity?.supportFragmentManager?.beginTransaction()?.replace(R.id.frame, SettingsFrag())?.commit()
+            activity?.supportFragmentManager?.beginTransaction()?.replace(R.id.frame, SettingsFrag())?.addToBackStack("SettingsFrag")
+                ?.commit()
         }
 
         btn_pause.setOnClickListener {
-            Toast.makeText(activity as Context, "Nahi hoga Pause abhi", Toast.LENGTH_SHORT).show()
+            if(a_running) clock_a.cancel()
+            if(b_running) clock_b.cancel()
+            //var animation = AnimationUtils.loadAnimation(activity as Context, R.anim.blinking_text)
+            //tv_a.startAnimation(animation)
+            //tv_b.startAnimation(animation)
         }
         return view
     }
@@ -129,7 +153,7 @@ class HomeFrag : Fragment() {
                 tv_a.text = "TIME UP"
                 soundLost = MediaPlayer.create(activity as Context, R.raw.on_lost)
                 soundLost.start()
-                card_a.setBackgroundColor(resources.getColor(R.color.red))
+                card_a.setBackgroundResource(R.drawable.card_a_timeout)
             }
 
         }
@@ -156,7 +180,7 @@ class HomeFrag : Fragment() {
                 tv_b.text = "TIME UP"
                 soundLost = MediaPlayer.create(activity as Context, R.raw.on_lost)
                 soundLost.start()
-                card_b.setBackgroundColor(resources.getColor(R.color.design_default_color_error))
+                card_b.setBackgroundResource(R.drawable.card_b_timeout)
             }
 
         }
